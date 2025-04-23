@@ -1,0 +1,1 @@
+Generates & store random data
