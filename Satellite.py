@@ -1,5 +1,6 @@
 #This is the main file of the sattelite with all its functions
-from Sensor.py import sensorData
+from Sensor import sensorData
+
 
 def sensorHandle():
     print("do something")
