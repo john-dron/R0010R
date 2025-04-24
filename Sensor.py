@@ -24,3 +24,4 @@ if __name__ == "__main__":
     # Generate and save 500 random numbers in a single row
     generated_numbers = generate_and_save_numbers()
     print(f"Generated and saved {len(generated_numbers)} numbers in a new row.")
+
