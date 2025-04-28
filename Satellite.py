@@ -3,6 +3,7 @@ import os
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 import hashlib
+from Sensor import generate_and_save_numbers
 
 def pad(data):
     pad_len = 16 - len(data) % 16
@@ -26,9 +27,16 @@ def CommsWithGS(input_file: str, output_file: str, passphrase: str):
     os.remove(input_file)
     print(f"'{input_file}' encrypted and saved as '{output_file}', then deleted.")
 
-# Usage
-CommsWithGS('data.csv', 'coms.aes', 'RackarnsRabarber')    
+
+def main():
+    for i in range(5) :
+        generate_and_save_numbers(500)
+
+    # Usage
+    CommsWithGS('data.csv', 'coms.aes', 'RackarnsRabarber')    
     
+if (__name__ == "__main__"):
+    main()
 
 #def modeChange():
     #change the modes i.e. afe mmode, boot mode etc.
