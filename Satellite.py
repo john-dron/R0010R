@@ -29,8 +29,7 @@ def CommsWithGS(input_file: str, output_file: str, passphrase: str):
 
 
 def main():
-    for i in range(5) :
-        generate_and_save_numbers(500)
+
 
     # Usage
     CommsWithGS('data.csv', 'coms.aes', 'RackarnsRabarber')    
