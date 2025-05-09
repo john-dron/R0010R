@@ -4,9 +4,11 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 import hashlib
 import time
-from Sensor import generate_and_save_numbers
-from particlesens import simulate_optical_particle_sensor
-from Spectrometer import simulate_spectrometer_sensor
+import Sensor
+#from Sensor import generate_and_save_numbers
+#from particlesens import simulate_optical_particle_sensor
+#from Spectrometer import simulate_spectrometer_sensor
+import random
 
 currentMode='boot'
 lastMode=''
@@ -33,7 +35,7 @@ def CommsWithGS(input_file: str, output_file: str, passphrase: str):
         f.write(iv + encrypted_data)
 
     os.remove(input_file)
-    print(f"'{input_file}' encrypted and saved as '{output_file}', then deleted.")
+    print(f"'{input_file}' encrypted and sent as '{output_file}', then deleted.")
 
 def boot():
     print("deploying solar panel\n")
@@ -48,7 +50,7 @@ def boot():
         currentMode='safe'
         return
     else:
-        print("deployment complete entering!\n")
+        print("deployment complete entering standby mode!\n")
         currentMode='standby'
         return
     
@@ -58,37 +60,58 @@ def standby():
     global solar_check
     global currentMode
     global lastMode
+    global battery
     lastMode=currentMode
-    if solar_check:
+    if (battery<=20):
+        print("low battery entering safe mode to conserve power\n")
+        currentMode='safe'
+        return
+    elif solar_check:
         print("On day light side, preparing to gather data!\n")
         currentMode = 'nominal'
     else:
         time.sleep(5)
         solar_check=True
+        battery = battery - random.randint(1,3)
     return
 
 def nominal():
     global currentMode
     global solar_check
-    print("gathering senosordata 1")
-    generate_and_save_numbers()
-    print("gathering particle data")
-    simulate_optical_particle_sensor()
-    print("gathering spectroscopic data\n")
-    simulate_spectrometer_sensor()
-    currentMode='downlink'
-    solar_check=False
-    return
+    global battery
+    if (battery<=20):
+        print("low battery entering safe mode to conserve power\n")
+        currentMode='safe'
+        return
+    else:
+        print("gathering senosordata 1")
+        Sensor.generate_and_save_numbers()
+        print("gathering particle data")
+        Sensor.simulate_optical_particle_sensor()
+        print("gathering spectroscopic data\n")
+        Sensor.simulate_spectrometer_sensor()
+        currentMode='downlink'
+        solar_check=False
+        battery = battery - random.randint(1,10)
+        return
 
 
 def downlink():
     # Usage
     global currentMode
-    print("Sending encrypted data to Ground Station!!!")
-    CommsWithGS('data.csv', 'coms1.aes', 'RackarnsRabarber')
-    CommsWithGS('orbital_sensor_data.csv', 'coms2.aes', 'RackarnsRabarber')
-    CommsWithGS('spectrometer_data.csv', 'coms3.aes', 'RackarnsRabarber')
-    currentMode='standby'
+    global battery
+    if (battery<=20):
+        print("low battery entering safe mode to conserve power\n")
+        currentMode='safe'
+        return
+    else:
+        print("Sending encrypted data to Ground Station!!!")
+        CommsWithGS('preassure_data.csv', 'preassure_data.aes', 'RackarnsRabarber')
+        CommsWithGS('orbital_sensor_data.csv', 'orbital_sensor_data.aes', 'RackarnsRabarber')
+        CommsWithGS('spectrometer_data.csv', 'spectrometer_data.aes', 'RackarnsRabarber')
+        currentMode='standby'
+        battery = battery - random.randint(1,10)
+        return
 
 
 def safe():
@@ -97,8 +120,10 @@ def safe():
     global lastMode
     print("safe mode")
     if battery<=20:
+        print("Recharging battery please stand by...")
         for i in range(battery,100):
             battery+=1
+            print(f"Battery at {battery}%, charging...")
             time.sleep(0.1)
         print(f"battery now recharged returning to {lastMode} mode")
         currentMode = lastMode
