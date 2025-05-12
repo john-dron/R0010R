@@ -5,15 +5,14 @@ from Crypto.Random import get_random_bytes
 import hashlib
 import time
 import Sensor
-#from Sensor import generate_and_save_numbers
-#from particlesens import simulate_optical_particle_sensor
-#from Spectrometer import simulate_spectrometer_sensor
+
 import random
 
 currentMode='boot'
 lastMode=''
 battery=100
 solar_check=False
+downlink_error=0
 
 def pad(data):
     pad_len = 16 - len(data) % 16
@@ -38,25 +37,30 @@ def CommsWithGS(input_file: str, output_file: str, passphrase: str):
     print(f"'{input_file}' encrypted and sent as '{output_file}', then deleted.")
 
 def boot():
-    print("deploying solar panel\n")
     global currentMode
-    global battery
-    global lastMode
-    lastMode=currentMode
+    print("Deploying solar panels", end="")
+    for _ in range(3):
+        time.sleep(1)
+        print(".", end="", flush=True)
+    print("\n")
+    print("Solar panels deployed!")
     time.sleep(1)
-    print("cheching battery power\n")
-    if(battery<=20):
-        print("low battery entering safe mode to conserve power\n")
-        currentMode='safe'
-        return
-    else:
-        print("deployment complete entering standby mode!\n")
-        currentMode='standby'
-        return
+    print("Deploying subsystems", end="")
+    for _ in range(3):
+        time.sleep(1)
+        print(".", end="", flush=True)
+    print("\n")
+    print("Deployment complete entering standby mode!")
+    currentMode='standby'
+    return
     
 
 def standby():
-    print("standby awaiting instructions\n")
+    print("Standby awaiting instructions", end="")
+    for _ in range(3):
+        time.sleep(1)
+        print(".", end="", flush=True)
+    print("\n")
     global solar_check
     global currentMode
     global lastMode
@@ -84,11 +88,11 @@ def nominal():
         currentMode='safe'
         return
     else:
-        print("gathering senosordata 1")
-        Sensor.generate_and_save_numbers()
+        print("gathering pressure daata")
+        Sensor.simulate_pressure_sensor()
         print("gathering particle data")
         Sensor.simulate_optical_particle_sensor()
-        print("gathering spectroscopic data\n")
+        print("gathering spectroscopic data")
         Sensor.simulate_spectrometer_sensor()
         currentMode='downlink'
         solar_check=False
@@ -100,15 +104,26 @@ def downlink():
     # Usage
     global currentMode
     global battery
+    global downlink_error
     if (battery<=20):
         print("low battery entering safe mode to conserve power\n")
         currentMode='safe'
+        return
+    elif (downlink_error>=3):
+        print("To many downlink errors, entering safe mode to troubleshoot")
+        currentMode='safe'
+        return
+    elif(random.randint(1,2)==1):
+        print("Downlink error, trying again...")
+        downlink_error = downlink_error + 1
+        battery = battery - random.randint(1,5)
         return
     else:
         print("Sending encrypted data to Ground Station!!!")
         CommsWithGS('preassure_data.csv', 'preassure_data.aes', 'RackarnsRabarber')
         CommsWithGS('orbital_sensor_data.csv', 'orbital_sensor_data.aes', 'RackarnsRabarber')
         CommsWithGS('spectrometer_data.csv', 'spectrometer_data.aes', 'RackarnsRabarber')
+        downlink_error=0
         currentMode='standby'
         battery = battery - random.randint(1,10)
         return
@@ -118,6 +133,7 @@ def safe():
     global battery
     global currentMode
     global lastMode
+    global downlink_error
     print("safe mode")
     if battery<=20:
         print("Recharging battery please stand by...")
@@ -128,7 +144,16 @@ def safe():
         print(f"battery now recharged returning to {lastMode} mode")
         currentMode = lastMode
         return
+    elif(downlink_error>=3):
+        print("Telecommunication error")
+        print("Rebooting Telecomunication subsystem", end="")
+        for _ in range(3):
+            time.sleep(1)
+            print(".", end="", flush=True)
+        downlink_error=0
+        print("\n")
     else:
+        print("The error has been handled, returning to standby mode")
         currentMode='standby'
         return
         
@@ -142,7 +167,6 @@ def modeChange(mode):
                 print(f"entering {mode} mode\n")
                 boot()
             case 'standby':
-                print(f"entering {mode} mode\n")
                 standby()
             case 'nominal':
                 print(f"entering {mode} mode\n")

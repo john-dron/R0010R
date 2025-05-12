@@ -61,7 +61,7 @@ def simulate_spectrometer_sensor(count=500, bands=10):
     # Return list of (time, [intensities]) tuples
     return [(start_time + i * interval, [random.uniform(0, 1000) for _ in range(bands)]) for i in range(count)]
 
-def generate_and_save_numbers(count=500):
+def simulate_pressure_sensor(count=500):
     """
     Generate 'count' random numbers between 1 and 100, assign each a fake time
     over a 24-hour period, and append each as its own line to a CSV file.
@@ -80,6 +80,9 @@ def generate_and_save_numbers(count=500):
 
     with open(preassure_file, 'a', newline='') as csvfile:
         writer = csv.writer(csvfile)
+        if not file_exists:
+             writer.writerow(['Time', 'Pressure (10^-12 Pa)'])
+        
         # Optionally write header only once; uncomment if needed
         # if not file_exists:
         #     writer.writerow(['Time', 'Number'])
@@ -92,7 +95,7 @@ def generate_and_save_numbers(count=500):
 
 if __name__ == "__main__":
     # Generate and save 500 timestamped numbers, one per row
-    data = generate_and_save_numbers()
+    data = simulate_pressure_sensor()
     print(f"Generated and saved {len(data)} timestamped data points.")
     
     optical_data = simulate_optical_particle_sensor()

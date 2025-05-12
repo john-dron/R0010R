@@ -40,7 +40,11 @@ def main():
                 decrypt_file(filename, output_file, 'RackarnsRabarber')
                 os.remove(filename)
         else:
-            print("No current uplink. Waiting...")
+            print("No current uplink. Waiting", end="")
+            for _ in range(3):
+                time.sleep(1)
+                print(".", end="", flush=True)
+            print("\n")
             time.sleep(5)
 
 
