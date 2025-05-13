@@ -31,21 +31,28 @@ def decrypt_file(encrypted_file: str, output_file: str, passphrase: str):
 # Usage
 def main():
     pattern = re.compile(r'^.*\.aes$')
+    waiting_message_shown = False
     while(True):
         aes_files = [f for f in os.listdir('.') if pattern.match(f)]
 
         if aes_files:
+            if waiting_message_shown:
+                print()  # End the "waiting" line cleanly
+                waiting_message_shown = False
+            
             for filename in aes_files:
                 output_file = filename.replace('.aes', '_recieved.csv')
                 decrypt_file(filename, output_file, 'RackarnsRabarber')
                 os.remove(filename)
         else:
-            print("No current uplink. Waiting", end="")
-            for _ in range(3):
+            for i in range(4):  # Show up to 3 dots
+                dots = '.' * i
+                message = f"\rNo current uplink. Waiting{dots:<3}"  # Pad to overwrite previous
+                print(message, end='', flush=True)
                 time.sleep(1)
-                print(".", end="", flush=True)
-            print("\n")
-            time.sleep(5)
+            time.sleep(1)  # Slight pause before retrying
+            waiting_message_shown = True
+            
 
 
 
