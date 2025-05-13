@@ -199,6 +199,8 @@ def safe():
             print(".", end="", flush=True)
         downlink_error=0
         print("\n")
+        currentMode='standby'
+        return
     #Else it is handled and set to standby mode, no specific error should end up here
     else:
         print("The error has been handled, returning to standby mode")
