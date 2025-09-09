@@ -156,6 +156,7 @@ def downlink():
     #Successfull communication engcrypt all the .csv data files using time stamp so as to not overwrite any thing
     else:
         print("Sending encrypted data to Ground Station!!!")
+        #Search for any .csv file in the directory as they are unsent data files
         pattern = re.compile(r'^.*\.csv$')
         csv_files = [f for f in os.listdir('.') if pattern.match(f)]
         #If there are files decrypt them

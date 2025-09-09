@@ -68,8 +68,6 @@ def main():
             waiting_message_shown = True
             
 
-
-
 if (__name__ == "__main__"):
     #Makes sure main runs if this file is started by it self
     main()
